@@ -108,6 +108,37 @@
     mode: "0644"
   notify: reload nginx
 
+- name: Deploy Vault nginx config
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/vault.conf
+    content: |
+      map $http_upgrade $vault_connection_upgrade {
+          default upgrade;
+          ''      close;
+      }
+
+      server {
+          listen 80;
+          server_name vault.nobison.online;
+
+          location / {
+              proxy_pass http://192.168.1.110:{{ vault_port }};
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto https;
+
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection $vault_connection_upgrade;
+
+              proxy_read_timeout 3600s;
+              proxy_send_timeout 3600s;
+          }
+      }
+    mode: "0644"
+  notify: reload nginx
+
 - name: Enable and start cloudflared
   ansible.builtin.systemd:
     name: cloudflared
