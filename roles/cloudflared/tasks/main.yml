@@ -68,6 +68,41 @@
   args:
     creates: /etc/systemd/system/cloudflared.service
 
+- name: Ensure nginx is installed
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
+- name: Deploy Rancher nginx config
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/rancher.conf
+    content: |
+      server {
+          listen 80;
+          server_name rancher.nobison.online;
+
+          location / {
+              proxy_pass https://192.168.1.108/;
+              proxy_ssl_verify off;
+
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto https;
+
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+
+              proxy_read_timeout 3600s;
+              proxy_send_timeout 3600s;
+          }
+      }
+    mode: "0644"
+  notify: reload nginx
+
 - name: Enable and start cloudflared
   ansible.builtin.systemd:
     name: cloudflared
