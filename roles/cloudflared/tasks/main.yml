@@ -75,6 +75,16 @@
     update_cache: true
   when: ansible_os_family == 'Debian'
 
+- name: Deploy Nginx upstreams config
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/upstreams.conf
+    content: |
+      upstream my_servers {
+          server 192.168.1.110:30080;
+      }
+    mode: "0644"
+  notify: reload nginx
+
 - name: Deploy Rancher nginx config
   ansible.builtin.copy:
     dest: /etc/nginx/conf.d/rancher.conf
@@ -112,10 +122,6 @@
   ansible.builtin.copy:
     dest: /etc/nginx/conf.d/vault.conf
     content: |
-      upstream my_servers {
-          server 192.168.1.110:30080;
-      }
-
       map $http_upgrade $vault_connection_upgrade {
           default upgrade;
           ''      close;
