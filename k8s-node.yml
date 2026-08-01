@@ -3,6 +3,8 @@
   hosts: k8s_nodes
   become: true
   gather_facts: true
+  vars:
+    helm_version: "3.15.3"
   tasks:
     - name: Include task files
       ansible.builtin.include_tasks: tasks/main.yml

@@ -16,3 +16,6 @@
 
 - name: Include Calico tasks
   ansible.builtin.include_tasks: calico.yml
+
+- name: Include Helm tasks
+  ansible.builtin.include_tasks: helm.yml
