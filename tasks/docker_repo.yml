@@ -6,6 +6,4 @@
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   args:
     executable: /bin/bash
-  register: docker_repo_result
-  changed_when: docker_repo_result.rc == 0
-  failed_when: docker_repo_result.rc != 0
+    creates: /etc/apt/trusted.gpg.d/docker.gpg
