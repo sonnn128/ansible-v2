@@ -112,6 +112,10 @@
   ansible.builtin.copy:
     dest: /etc/nginx/conf.d/vault.conf
     content: |
+      upstream my_servers {
+          server 192.168.1.110:30080;
+      }
+
       map $http_upgrade $vault_connection_upgrade {
           default upgrade;
           ''      close;
@@ -122,7 +126,7 @@
           server_name vault.nobison.online;
 
           location / {
-              proxy_pass http://192.168.1.110:{{ vault_port }};
+              proxy_pass http://my_servers;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
