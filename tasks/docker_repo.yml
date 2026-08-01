@@ -6,4 +6,6 @@
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   args:
     executable: /bin/bash
-  creates: /etc/apt/sources.list.d/docker.list
+  register: docker_repo_result
+  changed_when: docker_repo_result.rc == 0
+  failed_when: docker_repo_result.rc != 0
