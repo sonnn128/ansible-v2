@@ -1,0 +1,7 @@
+---
+- name: Deploy Cloudflared on load balancer
+  hosts: web
+  become: true
+  gather_facts: true
+  roles:
+    - role: cloudflared

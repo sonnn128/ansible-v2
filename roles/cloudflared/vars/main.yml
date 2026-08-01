@@ -1,0 +1,5 @@
+---
+cloudflared_tunnel_name: nobison-domain-tunnel
+cloudflared_tunnel_id: "a1fb09eb-c4d3-4151-a66b-6ad84dc76333"
+cloudflared_hostname: rancher.nobison.online
+cloudflared_service_url: "http://192.168.1.101:80"
