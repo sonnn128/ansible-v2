@@ -22,8 +22,8 @@ SSH_PORT="${SSH_PORT:-22}"
 # Danh sách server mặc định (dùng nếu không truyền tham số)
 DEFAULT_SERVERS=(
     "192.168.1.101"   # loadbalancer-server
-    "192.168.1.200"   # control-plane-1
-    "192.168.1.88"    # control-plane-2
+    # "192.168.1.200"   # control-plane-1
+    "192.168.1.110"    # control-plane-2
 )
 
 # Nếu có tham số dòng lệnh thì dùng tham số, không thì dùng danh sách mặc định
