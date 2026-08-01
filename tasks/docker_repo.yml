@@ -1,0 +1,9 @@
+---
+- name: Add Docker apt key and repository
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/docker.gpg
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  args:
+    executable: /bin/bash
+  creates: /etc/apt/sources.list.d/docker.list

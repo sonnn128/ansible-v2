@@ -1,0 +1,8 @@
+---
+- name: Prepare Kubernetes node
+  hosts: k8s_nodes
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Include task files
+      ansible.builtin.include_tasks: tasks/main.yml

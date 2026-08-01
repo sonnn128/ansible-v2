@@ -1,0 +1,14 @@
+---
+- name: Install Calico
+  ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
+  environment:
+    KUBECONFIG: /root/.kube/config
+  changed_when: true
+
+- name: Remove control-plane taint
+  ansible.builtin.command: kubectl taint nodes k8s-node-1 node-role.kubernetes.io/control-plane:NoSchedule-
+  environment:
+    KUBECONFIG: /root/.kube/config
+  register: taint_result
+  failed_when: false
+  changed_when: taint_result.rc == 0
