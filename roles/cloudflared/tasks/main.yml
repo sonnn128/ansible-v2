@@ -79,7 +79,7 @@
   ansible.builtin.copy:
     dest: /etc/nginx/conf.d/upstreams.conf
     content: |
-      upstream my_servers {
+      upstream myservers {
           server 192.168.1.110:30080;
       }
     mode: "0644"
@@ -132,7 +132,7 @@
           server_name vault.nobison.online;
 
           location / {
-              proxy_pass http://my_servers;
+              proxy_pass http://myservers;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -144,6 +144,33 @@
 
               proxy_read_timeout 3600s;
               proxy_send_timeout 3600s;
+          }
+      }
+    mode: "0644"
+  notify: reload nginx
+
+- name: Deploy xyz.com nginx config
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/xyz.com.conf
+    content: |
+      upstream my_servers {
+          server 192.168.1.110:30080;
+      }
+
+      server {
+          listen 80;
+          server_name xyz.com;
+
+          location / {
+              proxy_pass http://my_servers;
+
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+
+              proxy_http_version 1.1;
+              proxy_set_header Connection "";
           }
       }
     mode: "0644"
