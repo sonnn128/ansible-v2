@@ -1,42 +1,91 @@
 ---
-- name: Install Cloudflared on Ubuntu/Debian
+- name: Install Cloudflared and configure Rancher nginx
   hosts: web
   become: true
   gather_facts: true
 
+  vars:
+    cloudflared_tunnel_id: "a1fb09eb-c4d3-4151-a66b-6ad84dc76333"
+    cloudflared_hostname: "rancher.nobison.online"
+    cloudflared_service_url: "http://192.168.1.101:80"
+
   tasks:
-    - name: Ensure apt-transport-https and ca-certificates are installed
+    - name: Ensure required packages are installed
       ansible.builtin.apt:
         name:
           - apt-transport-https
           - ca-certificates
           - curl
           - gnupg
+          - nginx
         state: present
         update_cache: true
-      when: ansible_os_family == 'Debian' and ansible_distribution == 'Ubuntu' and ansible_distribution_version == '22.04'
+      when: ansible_os_family == 'Debian'
 
-    - name: Download Cloudflare GPG key
+    - name: Add Cloudflare GPG key
       ansible.builtin.get_url:
         url: https://pkg.cloudflare.com/cloudflare-main.gpg
         dest: /usr/share/keyrings/cloudflare-main.gpg
-        mode: '0644'
-      when: ansible_os_family == 'Debian'
+        mode: "0644"
 
     - name: Add Cloudflared apt repository
       ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared jammy main"
+        repo: "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared {{ ansible_distribution_release }} main"
         filename: cloudflared
         state: present
-      when: ansible_os_family == 'Debian' and ansible_distribution == 'Ubuntu' and ansible_distribution_version == '22.04'
-
-    - name: Update apt cache after adding repository
-      ansible.builtin.apt:
-        update_cache: true
-      when: ansible_os_family == 'Debian' and ansible_distribution == 'Ubuntu' and ansible_distribution_version == '22.04'
 
     - name: Install cloudflared
       ansible.builtin.apt:
         name: cloudflared
         state: present
-      when: ansible_os_family == 'Debian' and ansible_distribution == 'Ubuntu' and ansible_distribution_version == '22.04'
+        update_cache: true
+
+    - name: Ensure nginx conf.d exists
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d
+        state: directory
+        mode: "0755"
+
+    - name: Deploy Rancher nginx config
+      ansible.builtin.copy:
+        dest: /etc/nginx/conf.d/rancher.conf
+        content: |
+          server {
+              listen 80;
+              server_name rancher.nobison.online;
+
+              location / {
+                  proxy_pass https://192.168.1.108/;
+                  proxy_ssl_verify off;
+
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto https;
+
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+
+                  proxy_read_timeout 3600s;
+                  proxy_send_timeout 3600s;
+              }
+          }
+        mode: "0644"
+      notify: reload nginx
+
+    - name: Validate nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Ensure nginx is running
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+        state: started
+
+  handlers:
+    - name: reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
