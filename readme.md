@@ -2,6 +2,10 @@
 ```
 ansible-playbook -i inventory.ini playbook.yml
 ```
+### Cloudflared
+```
+ansible-playbook -i inventory.ini site.yml
+```
 
 ### K8s
 ```

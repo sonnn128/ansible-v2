@@ -180,6 +180,37 @@
     mode: "0644"
   notify: reload nginx
 
+- name: Deploy Elastic nginx config
+  ansible.builtin.copy:
+    dest: /etc/nginx/conf.d/elastic.conf
+    content: |
+      map $http_upgrade $elastic_connection_upgrade {
+          default upgrade;
+          ''      close;
+      }
+
+      server {
+          listen 80;
+          server_name elastic.nobison.online;
+
+          location / {
+              proxy_pass http://myservers;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto https;
+
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection $elastic_connection_upgrade;
+
+              proxy_read_timeout 3600s;
+              proxy_send_timeout 3600s;
+          }
+      }
+    mode: "0644"
+  notify: reload nginx
+
 - name: Deploy xyz.com nginx config
   ansible.builtin.copy:
     dest: /etc/nginx/conf.d/xyz.com.conf
