@@ -4,4 +4,8 @@ credentials-file: /root/.cloudflared/{{ cloudflared_tunnel_id }}.json
 ingress:
   - hostname: {{ cloudflared_hostname }}
     service: {{ cloudflared_service_url }}
+  - hostname: vault.nobison.online
+    service: {{ cloudflared_service_url }}
+  - hostname: grafana.nobison.online
+    service: {{ cloudflared_service_url }}
   - service: http_status:404
